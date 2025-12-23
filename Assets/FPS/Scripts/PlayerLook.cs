@@ -9,8 +9,9 @@ namespace FPS.Scripts
             _me = me ?? throw new ArgumentNullException(nameof(me));
             _camera = camera ?? throw new ArgumentNullException(nameof(camera));
         }
-        public void ChangeLook(Vector2 LookInput)
+        public void UpdateLook(Vector2 LookInput)
         {
+          //  float dt = Time.deltaTime;
             (_yaw,_pitch) = CalculatorLook(LookInput, _speed, Time.deltaTime, _maxDt,_yaw,_pitch);
             _me.rotation = Quaternion.Euler(0f, _yaw, 0f);
             _camera.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
@@ -20,12 +21,13 @@ namespace FPS.Scripts
        
             yaw += direction.x * speed * deltaTime;
             pitch -= direction.y * speed * deltaTime;
-            pitch  = Mathf.Clamp(pitch, -8, maxDt);
+            pitch  = Mathf.Clamp(pitch, _minDt, maxDt);
             return (yaw, pitch);
 
         }
         private float _speed = 5f;
-        private float _maxDt = 45f; 
+        private float _maxDt = 45f;
+        private const float _minDt = -8;
         private float _yaw = 0f;
         private float _pitch = 0f;
         private Transform _me;
