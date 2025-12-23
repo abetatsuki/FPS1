@@ -8,15 +8,18 @@ namespace FPS.Scripts
     [RequireComponent(typeof(Rigidbody))]
     public class PlayerManager : MonoBehaviour
     {
-        public MoveStatement State;
-
+        public MoveStatement CurrentState;
+        
         public enum MoveStatement
         {
             walking,
             sprinting,
             crouching,
+            sliding,
             air
         }
+
+        private bool _sliding;
 
         [Header("Commponents")] private InputBuffer _inputBuffer;
         private PlayerInput _playerInput;
@@ -30,23 +33,31 @@ namespace FPS.Scripts
         private PlayerSliding _playerSliding;
 
         [Header("MoveSpeed")] [SerializeField, Tooltip("CurrentSpeed")]
-        private float _speed = 3f;
+        private float _moveSpeed;
 
-        [SerializeField, Tooltip("WalkSpeed")] private float _walkSpeed = 5f;
+        [SerializeField, Tooltip("WalkSpeed")] 
+        private float _walkSpeed ;
 
         [SerializeField, Tooltip("SprintSpeed")]
-        private float _sprintSpeed = 7f;
+        private float _sprintSpeed;
 
-        [Header("Jump")] [SerializeField, Tooltip("JumpForce")]
-        private float _jumpForce = 5f;
+        [SerializeField,Tooltip("SlideSpeed")]
+        private float _slideSpeed;
+        private float _desuredMoveSpeed;
+        private float _lastDesiredMoveSpeed;
+        [Header("Jump")]
+        [SerializeField, Tooltip("JumpForce")]
+        private float _jumpForce;
 
-        [Header("Crouch")] [SerializeField, Tooltip("CrouchSpeed")]
-        private float _crouchSpeed = 1f;
+        [Header("Crouch")] 
+        [SerializeField, Tooltip("CrouchSpeed")]
+        private float _crouchSpeed;
 
         [SerializeField, Tooltip("CrouchYScale")]
-        private float _crouchYScale = 0.5f;
+        private float _crouchYScale;
 
-        [Header("Slide")] [SerializeField, Tooltip("SlideForce")]
+        [Header("Slide")] 
+        [SerializeField, Tooltip("SlideForce")]
         private float _slideForce;
 
         [SerializeField, Tooltip("SlideYScale")]
@@ -56,13 +67,15 @@ namespace FPS.Scripts
         private float _slideTimer;
 
 
-        [Header("Slope Handing")] [SerializeField, Tooltip("Slope max Angle")]
+        [Header("Slope Handing")]
+        [SerializeField, Tooltip("Slope max Angle")]
         private float _maxSlopeAngle;
 
         private bool _exitingSlope;
 
 
-        [Header("GroundCheck")] [SerializeField, Tooltip("PlayerHeight")]
+        [Header("GroundCheck")] 
+        [SerializeField, Tooltip("PlayerHeight")]
         private float _playerHeight;
 
         private bool _isGrounded;
@@ -105,7 +118,7 @@ namespace FPS.Scripts
         
         private void FixedUpdate()
         {
-            _playerMover.Move(_moveInput, _speed, _exitingSlope);
+            _playerMover.Move(_moveInput, _moveSpeed, _exitingSlope);
             _playerSliding.FixedUpdate(_moveInput);
             _isGrounded = GroundCheck();
         }
@@ -238,8 +251,8 @@ namespace FPS.Scripts
         private void Crouch(float obj)
         {
             Debug.Log("Crouch");
-            State = MoveStatement.crouching;
-            _speed = _crouchSpeed;
+            CurrentState = MoveStatement.crouching;
+            _moveSpeed = _crouchSpeed;
             transform.localScale = new Vector3(transform.localScale.x, _crouchYScale, transform.localScale.z);
             // _rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
         }
@@ -258,13 +271,13 @@ namespace FPS.Scripts
         {
             if (_isGrounded && speed > 0)
             {
-                State = MoveStatement.sprinting;
-                _speed = _sprintSpeed;
+                CurrentState = MoveStatement.sprinting;
+                _moveSpeed = _sprintSpeed;
             }
             else if (_isGrounded && speed == 0)
             {
-                State = MoveStatement.walking;
-                _speed = _walkSpeed;
+                CurrentState = MoveStatement.walking;
+                _moveSpeed = _walkSpeed;
             }
         }
 
@@ -273,14 +286,14 @@ namespace FPS.Scripts
             _moveInput = input;
             if (_isGrounded)
             {
-                State = MoveStatement.walking;
-                _speed = _walkSpeed;
+                CurrentState = MoveStatement.walking;
+                _moveSpeed = _walkSpeed;
             }
         }
 
         private void IsGrounded()
         {
-            State = MoveStatement.air;
+            CurrentState = MoveStatement.air;
         }
     }
 }
