@@ -26,6 +26,7 @@ namespace FPS.Scripts
         [Header("PureClass")] private PlayerMover _playerMover;
         private PlayerLook _playerLook;
         private Vector3 _moveInput;
+        private Vector2 _currentLookInput;
         private PlayerSliding _playerSliding;
 
         [Header("MoveSpeed")] [SerializeField, Tooltip("CurrentSpeed")]
@@ -50,7 +51,8 @@ namespace FPS.Scripts
 
         [SerializeField, Tooltip("SlideYScale")]
         private float _slideYScale;
-        [SerializeField,Tooltip("SlideTimer")]
+
+        [SerializeField, Tooltip("SlideTimer")]
         private float _slideTimer;
 
 
@@ -80,16 +82,27 @@ namespace FPS.Scripts
             Init();
         }
 
+        private void OnEnable()
+        {
+            if (_inputBuffer != null)
+            {
+                SubscribeEvents();
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (_inputBuffer != null)
+            {
+                UnsubscribeEvents();
+            }
+        }
+
         private void Start()
         {
             _startYScale = transform.localScale.y;
         }
-
-        private void Update()
-        {
-           
-        }
-
+        
         private void FixedUpdate()
         {
             _playerMover.Move(_moveInput, _speed, _exitingSlope);
@@ -97,7 +110,13 @@ namespace FPS.Scripts
             _isGrounded = GroundCheck();
         }
 
-       
+        private void LateUpdate()
+        {
+            if (_playerLook != null)
+            {
+                _playerLook.UpdateLook(_currentLookInput);
+            }
+        }
 
         private void Init()
         {
@@ -105,7 +124,6 @@ namespace FPS.Scripts
             InitPlayerInput();
             InitPureClass();
             _inputBuffer.Init();
-            Event();
         }
 
         private void InitComponents()
@@ -126,7 +144,8 @@ namespace FPS.Scripts
             _inputBuffer = new InputBuffer(_playerInput);
             _playerMover = new PlayerMover(_rb, _camera, _jumpForce, _transform, _playerHeight,
                 _maxSlopeAngle);
-            _playerSliding = new PlayerSliding(_rb, _playerMover, _transform, _slideForce, _slideYScale,_slideTimer,_camera);
+            _playerSliding = new PlayerSliding(_rb, _playerMover, _transform, _slideForce, _slideYScale, _slideTimer,
+                _camera);
             _playerLook = new PlayerLook(_transform, _camera);
         }
 
@@ -142,25 +161,34 @@ namespace FPS.Scripts
             return component;
         }
 
-        private void Event()
+        private void SubscribeEvents()
         {
-            if (_inputBuffer == null)
-            {
-                Debug.Log("Input buffer is null");
-                return;
-            }
-
             _inputBuffer.MoveAction.Performed += InputVector2;
             _inputBuffer.MoveAction.Canceled += InputVector2;
-            _inputBuffer.LookAction.Performed += Look;
-            _inputBuffer.LookAction.Canceled += Look;
+            _inputBuffer.LookAction.Performed += OnLookInput; // 名前変更
+            _inputBuffer.LookAction.Canceled += OnLookInput; // 名前変更
             _inputBuffer.SprintAction.Performed += Sprint;
             _inputBuffer.SprintAction.Canceled += Sprint;
             _inputBuffer.CrouchAction.Performed += Crouch;
+            _inputBuffer.CrouchAction.Canceled += CrouchCancel; // Typo修正
             _inputBuffer.SlideAction.Performed += Slide;
             _inputBuffer.SlideAction.Canceled += Slide;
-            _inputBuffer.CrouchAction.Canceled += CrouchCansel;
             _inputBuffer.JumpAction.Performed += Jump;
+        }
+
+        private void UnsubscribeEvents()
+        {
+            _inputBuffer.MoveAction.Performed -= InputVector2;
+            _inputBuffer.MoveAction.Canceled -= InputVector2;
+            _inputBuffer.LookAction.Performed -= OnLookInput;
+            _inputBuffer.LookAction.Canceled -= OnLookInput;
+            _inputBuffer.SprintAction.Performed -= Sprint;
+            _inputBuffer.SprintAction.Canceled -= Sprint;
+            _inputBuffer.CrouchAction.Performed -= Crouch;
+            _inputBuffer.CrouchAction.Canceled -= CrouchCancel;
+            _inputBuffer.SlideAction.Performed -= Slide;
+            _inputBuffer.SlideAction.Canceled -= Slide;
+            _inputBuffer.JumpAction.Performed -= Jump;
         }
 
         private bool GroundCheck()
@@ -216,14 +244,14 @@ namespace FPS.Scripts
             // _rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
         }
 
-        private void CrouchCansel(float obj)
+        private void CrouchCancel(float obj)
         {
             transform.localScale = new Vector3(transform.localScale.x, _startYScale, transform.localScale.z);
         }
 
-        private void Look(Vector2 lookInput)
+        private void OnLookInput(Vector2 lookInput)
         {
-            _playerLook.ChangeLook(lookInput);
+            _currentLookInput =  lookInput;
         }
 
         private void Sprint(float speed)
