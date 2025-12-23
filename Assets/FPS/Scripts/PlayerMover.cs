@@ -1,20 +1,34 @@
 using UnityEngine;
-
+using System;
 namespace FPS.Scripts
 {
     public class PlayerMover
     {
-        public PlayerMover(Rigidbody rb, Transform camera, float jumpForce, Transform tf, float playerHeight,
-            RaycastHit slopeHit, float maxSlopeAngle,bool exitingSlope)
+        public PlayerMover(Rigidbody rb, Transform camera, float jumpForce, Transform tf, float playerHeight
+            , float maxSlopeAngle)
         {
-            _rb = rb;
-            _camera = camera;
+            _rb = rb ?? throw new ArgumentNullException(nameof(rb));
+            _camera = camera ?? throw new ArgumentNullException(nameof(camera));
+            _tf = tf ?? throw new ArgumentNullException(nameof(tf));
+
+            if (jumpForce <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(jumpForce));
+            }
+
+            if (playerHeight <= 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(playerHeight));
+            }
+
+            if (maxSlopeAngle <= 0f || maxSlopeAngle > 90f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maxSlopeAngle));
+            }
+        
             _jumpForce = jumpForce;
-            _tf = tf;
             _playerHeight = playerHeight;
-            _slopeHit = slopeHit;
             _maxSlopeAngle = maxSlopeAngle;
-            _exitSlope = exitingSlope;
         }
 
         public void Move(Vector2 input, float speed,bool exitingSlope)
@@ -90,6 +104,5 @@ namespace FPS.Scripts
         private readonly float _playerHeight;
         private RaycastHit _slopeHit;
         private readonly float _maxSlopeAngle;
-        private  bool _exitSlope;
     }
 }
