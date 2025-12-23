@@ -15,6 +15,8 @@ namespace FPS.Scripts
         public InputActionEntity<float> JumpAction => _jumpActionEntity;
         public InputActionEntity<float> SprintAction => _sprintActionEntity;
         public InputActionEntity<float> CrouchAction => _crouchActionEntity;
+        public InputActionEntity<float> SlideAction => _slideActionEntity;
+        
         
 
         private const string _lookActionName = "Look";
@@ -22,6 +24,7 @@ namespace FPS.Scripts
         private const string _jumpActionName = "Jump";
         private const string _sprintActionName = "Sprint";
         private const string _crouchActionName = "Crouch";
+        private const string _slideActionName = "Slide";
 
         private PlayerInput _playerInput;
 
@@ -30,6 +33,7 @@ namespace FPS.Scripts
         private InputActionEntity<float> _jumpActionEntity;
         private InputActionEntity<float> _sprintActionEntity;
         private InputActionEntity<float> _crouchActionEntity;
+        private InputActionEntity<float> _slideActionEntity;
         
         public void Init()
         {
@@ -41,6 +45,7 @@ namespace FPS.Scripts
                 _jumpActionEntity = new InputActionEntity<float>(_playerInput.actions[_jumpActionName]);
                 _sprintActionEntity = new InputActionEntity<float>(_playerInput.actions[_sprintActionName]);
                 _crouchActionEntity = new InputActionEntity<float>(_playerInput.actions[_crouchActionName]);
+                _slideActionEntity = new InputActionEntity<float>(_playerInput.actions[_slideActionName]);
             }
         }
     }
