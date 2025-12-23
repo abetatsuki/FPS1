@@ -451,6 +451,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FPS.Scripts.PlayerManager
   State: 0
+  _speed: 3
+  _walkSpeed: 5
+  _sprintSpeed: 7
+  _jumpForce: 5
+  _playerHeight: 2
+  _maxSlopeAngle: 45
+  _crouchSpeed: 1
+  _crouchYScale: 0.5
   _camera: {fileID: 330585546}
 --- !u!114 &801684673
 MonoBehaviour:
@@ -571,7 +579,7 @@ Transform:
   m_GameObject: {fileID: 801684671}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: -2.67}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -793,7 +801,7 @@ Transform:
   m_GameObject: {fileID: 1425422088}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
