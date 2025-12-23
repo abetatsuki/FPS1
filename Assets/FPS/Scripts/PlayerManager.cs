@@ -18,37 +18,47 @@ namespace FPS.Scripts
             air
         }
 
-        [Header("Commponents")]
-        private InputBuffer _inputBuffer;
+        [Header("Commponents")] private InputBuffer _inputBuffer;
         private PlayerInput _playerInput;
         private Rigidbody _rb;
         private Transform _transform;
-        
-        [Header("PureClass")]
-        private PlayerMover _playerMover;
+
+        [Header("PureClass")] private PlayerMover _playerMover;
         private PlayerLook _playerLook;
         private Vector3 _moveInput;
 
-        [Header("MoveSpeed")]
-        [SerializeField, Tooltip("CurrentSpeed")]
+        [Header("MoveSpeed")] [SerializeField, Tooltip("CurrentSpeed")]
         private float _speed = 3f;
-        [SerializeField, Tooltip("WalkSpeed")]
-        private float _walkSpeed = 5f;
+
+        [SerializeField, Tooltip("WalkSpeed")] private float _walkSpeed = 5f;
+
         [SerializeField, Tooltip("SprintSpeed")]
         private float _sprintSpeed = 7f;
-        
-        [Header("GroundCheck")]
-        private bool _isGrounded = true;
+
+        [Header("Jump")] [SerializeField, Tooltip("JumpForce")]
+        private float _jumpForce = 5f;
+
+        [Header("GroundCheck")] [SerializeField, Tooltip("PlayerHeight")]
+        private float _playerHeight;
+
+        [SerializeField, Tooltip("GroundLayer")]
+        private LayerMask _groundLayer;
+
+        private bool _isGrounded;
+        private RaycastHit _groundCheck;
 
         [Header("Slope Handing")] [SerializeField, Tooltip("Slope max Angle")]
-        private float _maxslopeAngle;
+        private float _maxSlopeAngle;
+
         private RaycastHit _slopeHit;
-        
-        [Header("Crouch")] 
-        [SerializeField, Tooltip("CrouchSpeed")]
+        private bool _exitingSlope;
+
+        [Header("Crouch")] [SerializeField, Tooltip("CrouchSpeed")]
         private float _crouchSpeed = 1f;
+
         [SerializeField, Tooltip("CrouchYScale")]
         private float _crouchYScale = 0.5f;
+
         private float _startYScale;
 
         [SerializeField, Tooltip("CameraTransform")]
@@ -66,8 +76,8 @@ namespace FPS.Scripts
 
         private void Update()
         {
-            _playerMover.Move(_moveInput, _speed);
-            Debug.Log(_speed);
+            _playerMover.Move(_moveInput, _speed,_exitingSlope);
+            Debug.Log(_isGrounded = GroundCheck());
         }
 
         private void Init()
@@ -78,7 +88,8 @@ namespace FPS.Scripts
             _playerInput.defaultActionMap = "Player";
             _playerInput.notificationBehavior = PlayerNotifications.InvokeCSharpEvents;
             _inputBuffer = new InputBuffer(_playerInput);
-            _playerMover = new PlayerMover(_rb, _camera);
+            _playerMover = new PlayerMover(_rb, _camera, _jumpForce, _transform, _playerHeight, _slopeHit,
+                _maxSlopeAngle, _exitingSlope);
             _playerLook = new PlayerLook(_transform, _camera);
             _inputBuffer.Init();
             Event();
@@ -100,19 +111,51 @@ namespace FPS.Scripts
             _inputBuffer.SprintAction.Canceled += Sprint;
             _inputBuffer.CrouchAction.Performed += Crouch;
             _inputBuffer.CrouchAction.Canceled += CrouchCansel;
+            _inputBuffer.JumpAction.Performed += Jump;
+        }
+
+        private bool GroundCheck()
+        {
+            Vector3 origin = transform.position + Vector3.up * 0.1f;
+            float rayLength = _playerHeight * 0.5f + 0.3f;
+            if (Physics.Raycast(origin, Vector3.down, out _groundCheck, rayLength, _groundLayer))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private void OnCollisionEnter(Collision other)
+        {
+            if (other.gameObject.CompareTag("Ground"))
+            {
+                _exitingSlope = false;
+                Debug.Log("OnGround");
+            }
+            Debug.Log("Air");
+        }
+
+        private void Jump(float obj)
+        {
+            if (_isGrounded)
+            {
+                _exitingSlope = true;
+                _playerMover.Jump();
+            }
         }
 
         private void Crouch(float obj)
         {
             State = MoveStatement.crouching;
-            _speed  = _crouchSpeed;
-            transform.localScale = new Vector3(transform.localScale.x,_crouchYScale, transform.localScale.z);
-           // _rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
+            _speed = _crouchSpeed;
+            transform.localScale = new Vector3(transform.localScale.x, _crouchYScale, transform.localScale.z);
+            // _rb.AddForce(Vector3.down * 5f, ForceMode.Impulse);
         }
 
         private void CrouchCansel(float obj)
         {
-            transform.localScale = new Vector3(transform.localScale.x,_startYScale, transform.localScale.z);
+            transform.localScale = new Vector3(transform.localScale.x, _startYScale, transform.localScale.z);
         }
 
         private void Look(Vector2 lookInput)
@@ -122,10 +165,15 @@ namespace FPS.Scripts
 
         private void Sprint(float speed)
         {
-            if (_isGrounded)
+            if (_isGrounded && speed > 0)
             {
                 State = MoveStatement.sprinting;
                 _speed = _sprintSpeed;
+            }
+            else if (_isGrounded && speed == 0)
+            {
+                State = MoveStatement.walking;
+                _speed = _walkSpeed;
             }
         }
 
