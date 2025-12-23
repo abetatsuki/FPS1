@@ -1,13 +1,13 @@
 using UnityEngine;
-
+using System;
 namespace FPS.Scripts
 {
     public class PlayerLook 
     {
         public  PlayerLook(Transform me, Transform camera)
         {
-            _camera = camera;
-            _me = me;
+            _me = me ?? throw new ArgumentNullException(nameof(me));
+            _camera = camera ?? throw new ArgumentNullException(nameof(camera));
         }
         public void ChangeLook(Vector2 LookInput)
         {
